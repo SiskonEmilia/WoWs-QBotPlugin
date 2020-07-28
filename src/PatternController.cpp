@@ -96,6 +96,14 @@ void PatternController::load_from_file() {
             fclose(json_file_ptr);
             throw(std::exception("JSON文件格式错误：invalid_param_reply域"));
         }
+
+        rapidjson::Value &json_trailling_content = document["trailling_content"];
+        if (json_trailling_content.IsString()) {
+            Pattern::trailling_content = json_trailling_content.GetString();
+        } else {
+            fclose(json_file_ptr);
+            throw(std::exception("JSON文件格式错误：trailling_content域"));
+        }
         cq::logging::debug("进程", "解析设置完成，尝试关闭文件指针");
         fclose(json_file_ptr);
     }
@@ -133,11 +141,11 @@ void PatternController::reset() {
     patterns.clear();
 }
 
-inline std::map<std::string, Pattern*>::iterator PatternController::find_pattern(std::string key) {
+std::map<std::string, Pattern*>::iterator PatternController::find_pattern(std::string key) {
     return patterns.find(key);
 }
 
 
-inline std::map<std::string, Pattern*>::iterator PatternController::get_end() {
+std::map<std::string, Pattern*>::iterator PatternController::get_end() {
     return patterns.end();
 }

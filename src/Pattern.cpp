@@ -7,6 +7,9 @@
 #include <rapidjson/document.h>
 // #include <Windows.h>
 
+std::string Pattern::invalid_param_reply = "";
+std::string Pattern::trailling_content = "";
+
 Pattern::Pattern(const bool is_enable, const char* prefix_keyword, const int req_type, const char* req_url_pattern) :
     is_enable(is_enable), prefix_keyword(prefix_keyword), req_type(HTTP_REQUEST_TYPE(req_type)), req_url_pattern(req_url_pattern){}
 
@@ -36,7 +39,7 @@ const std::string& Pattern::get_reply_msg(const std::vector<std::string> &params
         default:
             throw(std::exception("不合法的回复解析模式，请检查数据文件或设置是否错误"));
     }
-    if (reply_patterns.empty()) return "";
+    if (reply_patterns.empty()) return std::string("");
     auto &reply_pattern_iter = reply_patterns.find(status_code);
     if (reply_pattern_iter == reply_patterns.end() || reply_pattern_iter->second->size() == 0) throw("没有可用的回复模板");
     
@@ -44,15 +47,24 @@ const std::string& Pattern::get_reply_msg(const std::vector<std::string> &params
     random_index = std::rand() % reply_pattern_iter->second->size();
     const std::string &reply_pattern = reply_pattern_iter->second->at(random_index);
 
+    // 根据给定参数解析并填充模板
     for (parse_index = 0; parse_index < reply_pattern.size(); ++parse_index) {
         switch(reply_pattern[parse_index]) {
             case '[':
                 if (++parse_index < reply_pattern.size() && reply_pattern[parse_index] == '$') {
-                    result += reply_pattern.substr(last_index, parse_index - last_index - 1);
-                    if (parse_index + 1 > reply_pattern.size()) throw(std::exception("解析错误：不合法的回复模板"));
+                    result += reply_pattern.substr(last_index, parse_index++ - last_index - 1);
+                    if (parse_index > reply_pattern.size()) {
+                        last_index = parse_index - 2;
+                        break;
+                    }
                     temp_num = reply_pattern[parse_index] - '0';
-                    if (temp_num < 0 || temp_num > 9 || reply_pattern[++parse_index] != ']') throw(std::exception("解析错误：不合法的回复模板"));
-                    if (temp_num > params.size()) return invalid_param_reply;
+                    if (reply_pattern[++parse_index] != ']') {
+                        last_index = parse_index - 2;
+                        break;
+                    }
+                    if (temp_num < 0 || temp_num > 9) throw(std::exception("解析错误：不合法的回复模板"));
+                    // ++temp_num cuz the prefix keywords will be count as params[0]
+                    if (++temp_num > params.size()) return invalid_param_reply;
                     result += params[temp_num];
                     last_index = parse_index + 1; 
                 } else --parse_index;
@@ -81,5 +93,7 @@ const std::string& Pattern::get_reply_msg(const std::vector<std::string> &params
             break;
         }
     }
-
+    if (last_index < reply_pattern.size()) result += reply_pattern.substr(last_index);
+    result += trailling_content;
+    return result;
 }

@@ -116,12 +116,12 @@
     ],
     "menu": [ // name 字段为显示在酷Q应用菜单中的文字, function 字段对应 CQ_MENU 宏调用的参数
         {
-            "name": "菜单 1",
-            "function": "menu_demo_1"
+            "name": "配置菜单",
+            "function": "menu_config"
         },
         {
-            "name": "菜单 2",
-            "function": "menu_demo_2"
+            "name": "从文件重载设置",
+            "function": "menu_reload_from_file"
         }
     ],
     "status": [],

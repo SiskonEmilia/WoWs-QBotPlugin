@@ -1,20 +1,36 @@
 {
     "patterns" : [
         {
-            "is_enable": false,
+            "is_enable": true,
             "prefix_keyword": "TestKeyword",
-            "req_type": 3,
+            "req_type": 2,
             "req_url_pattern": "",
             "reply_patterns": [
                 {
                     "status_code": 200,
                     "random_reply_patterns": [
                         "Random Test pattern1",
-                        "Random Test pattern2"
+                        "Random Test pattern2",
+                        "Random Test pattern with param[0]: [$2][$0][$1]"
+                    ]
+                }
+            ]
+        },{
+            "is_enable": true,
+            "prefix_keyword": "嗨",
+            "req_type": 2,
+            "req_url_pattern": "",
+            "reply_patterns": [
+                {
+                    "status_code": 200,
+                    "random_reply_patterns": [
+                        "你好呀\n",
+                        "？",
+                        "XD欢迎啊"
                     ]
                 }
             ]
         }
-    ],
+    ], 
     "invalid_param_reply": "参数输错了吧"
 }

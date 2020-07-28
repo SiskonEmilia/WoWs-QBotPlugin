@@ -58,14 +58,14 @@ CQ_INIT {
     on_private_message([](const PrivateMessageEvent &event) {
         try {
             std::vector<std::string> params;
-            if (params.empty()) {
-                send_message(event.target, "您没有触发任何关键词~");
+            if (event.message.empty()) {
+                send_message(event.target, Pattern::invalid_param_reply);
                 return;
             }
             QBot_Utils::split_private_msg(event.message, DEFAULT_SPLITOR, params);
             auto pattern = pc_instance->find_pattern(params[0]);
             if (pattern == pc_instance->get_end() || !pattern->second->is_enable) {
-                send_message(event.target, "您没有触发任何关键词~");
+                send_message(event.target, Pattern::invalid_param_reply);
             } else {
                 send_message(event.target, pattern->second->get_reply_msg(params));
             }
@@ -133,8 +133,8 @@ CQ_INIT {
     // });
 }
 
-CQ_MENU(menu_demo_1) {
-    logging::info("菜单", "点击菜单1，尝试启动nanaGUI");
+CQ_MENU(menu_config) {
+    logging::info("菜单", "尝试启动Qt GUI");
     try {
         w->show();
     } catch (std::exception a) {
@@ -143,6 +143,8 @@ CQ_MENU(menu_demo_1) {
     }
 }
 
-CQ_MENU(menu_demo_2) {
-    logging::info("菜单", "尝试进入");
+CQ_MENU(menu_reload_from_file) {
+    logging::info("菜单", "尝试从文件重载设置");
+    pc_instance->reset();
+    pc_instance->load_from_file();
 }

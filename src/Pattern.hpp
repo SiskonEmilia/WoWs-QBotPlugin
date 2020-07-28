@@ -3,6 +3,7 @@
 #include "Global.hpp"
 #include <vector>
 #include <map>
+#include <string>
 
 /**
 * Pattern 类代表了一个 关键词-HTTP请求组合
@@ -41,6 +42,7 @@ typedef struct Pattern {
     ~Pattern();
     const std::string& get_reply_msg(const std::vector<std::string> &params);
     static std::string invalid_param_reply;
+    static std::string trailling_content;
     // std::string post_body_pattern
 } Pattern;
 

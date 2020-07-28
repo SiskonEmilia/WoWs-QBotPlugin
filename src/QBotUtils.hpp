@@ -8,7 +8,7 @@
 #include <rapidjson/document.h>
 
 namespace QBot_Utils {
-    std::string bot_mentioned_key = "[CQ:at,qq=247136930]";
+    static std::string bot_mentioned_key;
 
     inline void split_group_msg(const std::string &input_str, const char &splitor, 
         std::vector<std::string> &result_container) {

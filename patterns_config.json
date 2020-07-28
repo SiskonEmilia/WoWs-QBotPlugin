@@ -1,0 +1,19 @@
+{
+    "patterns" : [
+        {
+            "is_enable": false,
+            "prefix_keyword": "TestKeyword",
+            "req_type": 3,
+            "req_url_pattern": "",
+            "reply_patterns": [
+                {
+                    "status_code": 200,
+                    "random_reply_patterns": [
+                        "Random Test pattern1",
+                        "Random Test pattern2"
+                    ]
+                }
+            ]
+        }
+    ]
+}

@@ -22,7 +22,7 @@ typedef struct Pattern {
     /** 关于 req_url_pattern 的语法说明
     * 示例：
     * http(s)://example.com?fieldname1=[$paramater_index]&fieldname2=[$paramater_index]&...
-    * 在 [paramater_index] 处，您应该填写其在指令中的参数序号，如指令为
+    * 在 [paramater_index] 处，您应该填写其在指令中的参数序号（不超过 10），如指令为
     * “搜船 AB BC CD”
     * 则 AB 对应 0，BC 对应 1，CD 对应 2
     * 如果 req_url_pattern 为 http://example.com?test1=[$2]&test2=[$1]
@@ -39,6 +39,8 @@ typedef struct Pattern {
     std::map<int, std::vector<std::string>*> reply_patterns;
     Pattern(const bool is_enable, const char* prefix_keyword, const int req_type, const char* req_url_pattern);
     ~Pattern();
+    const std::string& get_reply_msg(const std::vector<std::string> &params);
+    static std::string invalid_param_reply;
     // std::string post_body_pattern
 } Pattern;
 

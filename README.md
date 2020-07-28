@@ -8,14 +8,16 @@
 
 1. 捕获前缀关键词作为触发器
 2. 在触发器生效时进行 HTTP 请求、自动回复等动作
-3. 可解析 HTTP 返回的 JSON 内容并根据模板字符串自动渲染为完整字符串进行回复。
-4. 计数复读
-5. 自动加群、加好友
-6. 拉黑群
+3. 可以根据不同的HTTP状态码使用不同的回复
+4. 可以在多个回复模板中随机选择
+5. 可解析 HTTP 返回的 JSON 内容并根据模板字符串，自动渲染为完整字符串进行回复
+6. 计数复读
+7. 自动加群、加好友
+8. ~~拉黑群~~
 
 ### 开发进度
 
-- **version 0.0.1: Midnight** 
+- **version 0.0.1: Madoka** 
   - 引入 Nana GUI Library
   - 完成编译环境测试
   - 确定软件设计模式（MVC）
@@ -26,6 +28,7 @@
   - 设计、实现 GUI 界面，添加数据接口
   - 引入 Tencent RapidJSON
   - 引入 cpp-httplib
+  - ~~引入 Boost 库作为参数分割工具~~
   - 实现数据持久化
 
 ## 如何获取&使用？
@@ -56,7 +59,7 @@
 
 ### 编译实践
 
-#### 下载源代码
+#### 下载子模块源代码
 
 首先，本项目依赖于 `cqcppsdk`，因而我们在 `.gitmodules` 中将他们申明为了子模块，因此您应该使用如下命令克隆本项目来同时下载子模块依赖：
 
@@ -69,6 +72,12 @@ git clone --recursive https://github.com/SiskonEmilia/WoWs-QBotPlugin.git
 ```bash
 git submodule update
 ```
+
+#### 配置 header-only 依赖
+
+本项目依赖于 [Tencent RapidJSON](https://github.com/Tencent/rapidjson) 的 header-only 版本，您需要将相应的源文件文件夹（如 `rapidjson`）放置在 `include` 文件夹下方可正常编译。
+
+#### Qt 相关
 
 另外，由于本代码引入了 `Qt5` 库作为依赖并使用 CMake 工具构建，您需要首先安装 Qt5 库（包含 MSVC 2017 开发套件）并设置 `DCMAKE_PREFIX_PATH` 为库目录方可正常编译。
 

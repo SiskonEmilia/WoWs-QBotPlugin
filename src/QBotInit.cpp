@@ -6,6 +6,7 @@
 
 #include "Global.hpp"
 #include "PatternController.hpp"
+#include "QBotUtils.hpp"
 #include "mainwindow.h"
 
 using namespace cq;
@@ -18,6 +19,7 @@ QApplication *a = nullptr;
 MainWindow *w = nullptr;
 int tmp_num = 0;
 char **tmp_argv = new char*[0];
+static const char DEFAULT_SPLITOR = ' ';
 
 CQ_INIT {
     on_enable([] { 
@@ -49,18 +51,28 @@ CQ_INIT {
             logging::error("错误", "GUI测试时发生错误");
             logging::error("错误", e.what());
         }
+
+        QBot_Utils::set_mentioned_key(std::to_string(cq::get_login_user_id()));
     });
 
     on_private_message([](const PrivateMessageEvent &event) {
         try {
-            auto pattern = pc_instance->find_pattern(event.message);
-            if (pattern == pc_instance->get_end()) {
+            std::vector<std::string> params;
+            if (params.empty()) {
+                send_message(event.target, "您没有触发任何关键词~");
+                return;
+            }
+            QBot_Utils::split_private_msg(event.message, DEFAULT_SPLITOR, params);
+            auto pattern = pc_instance->find_pattern(params[0]);
+            if (pattern == pc_instance->get_end() || !pattern->second->is_enable) {
                 send_message(event.target, "您没有触发任何关键词~");
             } else {
-                
+                send_message(event.target, pattern->second->get_reply_msg(params));
             }
         } catch (ApiError &err) {
-            logging::warning("私聊", "私聊消息复读失败, 错误码: " + to_string(err.code));
+            logging::warning("私聊", "私聊消息处理错误, 错误码: " + to_string(err.code));
+        } catch (std::exception &err) {
+            logging::warning("消息发送错误", err.what());
         }
     });
 
@@ -74,6 +86,7 @@ CQ_INIT {
 
         try {
             send_message(event.target, event.message); // 复读
+            logging::info("消息内容", event.message);
             auto mem_list = get_group_member_list(event.group_id); // 获取群成员列表
             string msg;
             for (auto i = 0; i < min(10, static_cast<int>(mem_list.size())); i++) {

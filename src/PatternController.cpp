@@ -89,6 +89,13 @@ void PatternController::load_from_file() {
             throw(std::exception("JSON文件格式错误：patterns域"));
         }
 
+        rapidjson::Value &json_invalid_param_reply = document["invalid_param_reply"];
+        if (json_invalid_param_reply.IsString()) {
+            Pattern::invalid_param_reply = json_invalid_param_reply.GetString();
+        } else {
+            fclose(json_file_ptr);
+            throw(std::exception("JSON文件格式错误：invalid_param_reply域"));
+        }
         cq::logging::debug("进程", "解析设置完成，尝试关闭文件指针");
         fclose(json_file_ptr);
     }

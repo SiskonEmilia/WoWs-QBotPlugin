@@ -3,6 +3,7 @@
 #include <sstream>
 #include <exception>
 #include <QApplication>
+#include <QMessageBox>
 
 #include "Global.hpp"
 #include "PatternController.hpp"
@@ -19,109 +20,194 @@ QApplication *a = nullptr;
 MainWindow *w = nullptr;
 int tmp_num = 0;
 char **tmp_argv = new char*[0];
-static const char DEFAULT_SPLITOR = ' ';
 
 CQ_INIT {
     on_enable([] { 
+        #ifdef DEBUG_VERSION
         logging::info("启动", "WoWsQBot插件已启用【您正在使用测试版】");
         logging::info("提示", "测试版的性能和稳定性均不能保证，请慎重使用");
+        #endif
+
         logging::info("提示", "本插件 Github 地址：https://github.com/SiskonEmilia/WoWs-QBotPlugin");
         logging::info("提示", "如有发生严重 BUG，请在 Github 页面提交 issue");
-        logging::info("测试", "测试：文件读取");
-        try {
-            pc_instance = PatternController::get_instance();
-            pc_instance->load_from_file();
-            logging::info_success("测试", "测试：文件读取成功");
-            pc_instance->save_to_file();
-            logging::info_success("测试", "测试：文件保存成功");
-        }
-        catch(const std::exception& e) {
-            logging::error("错误", "文件存取时发生错误");
-            logging::error("错误", e.what());
-        }
-
-        logging::info("测试", "测试：打开设置面板");
         try {
             if (a == nullptr) a = new QApplication(tmp_num, tmp_argv);
             if (w == nullptr) w = new MainWindow();
             w->show();
             a->exec();
-            logging::info_success("测试", "测试：文件保存成功");
-        } catch (const std::exception& e) {
-            logging::error("错误", "GUI测试时发生错误");
-            logging::error("错误", e.what());
+        } catch(const std::exception &err) {
+            logging::error("错误", "GUI框架初始化时发生错误");
+            logging::error("错误", err.what());
         }
 
+        #ifdef DEBUG_VERSION
+        logging::debug("测试", "测试：文件读取");
+        try {
+            pc_instance = PatternController::get_instance();
+            pc_instance->load_from_file();
+            logging::debug("测试", "测试：文件读取成功");
+            pc_instance->save_to_file();
+            logging::debug("测试", "测试：文件保存成功");
+        }
+        catch(const std::exception& e) {
+            logging::error("错误", "文件存取时发生错误");
+            logging::error("错误", e.what());
+        }
+        #else
+        try {
+            pc_instance = PatternController::get_instance();
+            pc_instance->load_from_file();
+        }
+        catch(const std::exception& e) {
+            logging::error("错误", "文件读取时发生错误");
+            logging::error("错误", e.what());
+        }
+        #endif
+
         QBot_Utils::set_mentioned_key(std::to_string(cq::get_login_user_id()));
+        #ifdef DEBUG_VERSION
+        logging::debug("mentioned_key", Pattern::bot_mentioned_key);
+        #endif
     });
 
     on_private_message([](const PrivateMessageEvent &event) {
         try {
             std::vector<std::string> params;
-            if (event.message.empty()) {
+            QBot_Utils::split_private_msg(event.message, Pattern::param_splitor, params);
+            if (params.empty()) {
                 send_message(event.target, Pattern::invalid_param_reply);
+                event.block();
                 return;
             }
-            QBot_Utils::split_private_msg(event.message, DEFAULT_SPLITOR, params);
             auto pattern = pc_instance->find_pattern(params[0]);
             if (pattern == pc_instance->get_end() || !pattern->second->is_enable) {
                 send_message(event.target, Pattern::invalid_param_reply);
             } else {
-                send_message(event.target, pattern->second->get_reply_msg(params));
+                std::string reply;
+                pattern->second->get_reply_msg(params, reply);
+                #ifdef DEBUG_VERSION
+                logging::debug("尝试发送消息内容", reply);
+                #endif
+                send_message(event.target, reply);
             }
         } catch (ApiError &err) {
-            logging::warning("私聊", "私聊消息处理错误, 错误码: " + to_string(err.code));
+            logging::error("系统错误", "私聊消息处理错误, 错误码: " + to_string(err.code));
         } catch (std::exception &err) {
-            logging::warning("消息发送错误", err.what());
+            logging::error("私聊消息发送错误", err.what());
         }
+        event.block();
     });
 
+    
+    #ifdef DEBUG_VERSION
     on_message([](const MessageEvent &event) {
         logging::debug("消息", "收到消息: " + event.message + "\n实际类型: " + typeid(event).name());
     });
+    #endif
 
     on_group_message([](const GroupMessageEvent &event) {
-        static const set<int64_t> ENABLED_GROUPS = {123456, 123457};
-        if (ENABLED_GROUPS.count(event.group_id) == 0) return; // 不在启用的群中, 忽略
-
         try {
-            send_message(event.target, event.message); // 复读
-            logging::info("消息内容", event.message);
-            auto mem_list = get_group_member_list(event.group_id); // 获取群成员列表
-            string msg;
-            for (auto i = 0; i < min(10, static_cast<int>(mem_list.size())); i++) {
-                msg += "昵称: " + mem_list[i].nickname + "\n"; // 拼接前十个成员的昵称
+            if (!QBot_Utils::is_mentioned(event.message)) {
+                #ifdef DEBUG_VERSION
+                logging::debug("group_missing_msg", event.message);
+                #endif
+                event.block();
+                return;
+            } else {
+                std::vector<std::string> params;
+                QBot_Utils::split_group_msg(event.message, Pattern::param_splitor, params);
+                if (params.empty()) {
+                    send_group_message(event.group_id, Pattern::invalid_param_reply);
+                    event.block();
+                    return;
+                }
+                auto pattern = pc_instance->find_pattern(params[0]);
+                if (pattern == pc_instance->get_end() || !pattern->second->is_enable) {
+                    if (!event.is_anonymous()) {
+                        send_group_message(event.group_id, QBot_Utils::get_mention_key(to_string(event.user_id)) + Pattern::invalid_param_reply);
+                    } else {
+                        send_group_message(event.group_id, Pattern::invalid_param_reply);
+                    }
+                } else {
+                    std::string reply;
+                    pattern->second->get_reply_msg(params, reply);
+                    #ifdef DEBUG_VERSION
+                    logging::debug("尝试发送消息内容", reply);
+                    #endif
+                    if (!event.is_anonymous()) {
+                        send_group_message(event.group_id, QBot_Utils::get_mention_key(to_string(event.user_id)) + reply);
+                    }
+                    else {
+                        send_group_message(event.group_id, reply);
+                    }      
+                }
             }
-            send_group_message(event.group_id, msg); // 发送群消息
-        } catch (ApiError &) { // 忽略发送失败
-        }
-        if (event.is_anonymous()) {
-            logging::info("群聊", "消息是匿名消息, 匿名昵称: " + event.anonymous.name);
+        } catch (ApiError &err) {
+            logging::error("系统错误", "群聊消息处理错误, 错误码: " + to_string(err.code));
+        } catch (std::exception &err) {
+            logging::error("群聊消息发送错误", err.what());
         }
         event.block(); // 阻止当前事件传递到下一个插件
     });
 
-    on_group_upload([](const auto &event) { // 可以使用 auto 自动推断类型
-        stringstream ss;
-        ss << "您上传了一个文件, 文件名: " << event.file.name << ", 大小(字节): " << event.file.size;
-        try {
-            send_message(event.target, ss.str());
-        } catch (ApiError &) {
+    // on_discuss_message([](const DiscussMessageEvent& event) {
+    //     try {
+    //         if (!QBot_Utils::is_mentioned(event.message)) {
+    //             #ifdef DEBUG_VERSION
+    //             logging::debug("discuss_missing_msg", event.message);
+    //             #endif
+    //             event.block();
+    //             return;
+    //         } else {
+    //             std::vector<std::string> params;
+    //             QBot_Utils::split_group_msg(event.message, Pattern::param_splitor, params);
+    //             if (params.empty()) {
+    //                 send_group_message(event.discuss_id, Pattern::invalid_param_reply);
+    //                 event.block();
+    //                 return;
+    //             }
+    //             auto pattern = pc_instance->find_pattern(params[0]);
+    //             if (pattern == pc_instance->get_end() || !pattern->second->is_enable) {
+    //                 send_discuss_message(event.discuss_id, Pattern::invalid_param_reply);
+    //             } else {
+    //                 std::string reply;
+    //                 reply = QBot_Utils::get_mention_key(to_string(event.user_id));
+                    
+    //                 pattern->second->get_reply_msg(params, reply);
+    //                 #ifdef DEBUG_VERSION
+    //                 logging::debug("尝试发送消息内容", reply);
+    //                 #endif
+    //                 send_discuss_message(event.discuss_id, reply);
+    //             }
+    //         }
+    //     } catch (ApiError &err) {
+    //         logging::error("系统错误", "群聊消息处理错误, 错误码: " + to_string(err.code));
+    //     } catch (std::exception &err) {
+    //         logging::error("群聊消息发送错误", err.what());
+    //     }
+    //     event.block(); // 阻止当前事件传递到下一个插件
+    // });
+
+    on_group_request([](const GroupRequestEvent &event){ // 群请求
+        if (event.sub_type == GroupRequestEvent::SubType::INVITE) {
+            set_group_request(event.flag, event.sub_type, RequestEvent::Operation::APPROVE);
+            logging::info("群邀请", "已自动同意一个加群邀请");
         }
     });
 
-    on_disable([]() {
-        if (w != nullptr) {
-            delete w;
-            w = nullptr;
-        }
-        if (a != nullptr) {
-            delete a;
-            a = nullptr;
-        }
-    });
+    
+    // #ifdef DEBUG_VERSION
+    // on_group_upload([](const auto &event) { // 可以使用 auto 自动推断类型
+    //     stringstream ss;
+    //     ss << "您上传了一个文件, 文件名: " << event.file.name << ", 大小(字节): " << event.file.size;
+    //     try {
+    //         send_message(event.target, ss.str());
+    //     } catch (ApiError &) {
+    //     }
+    // });
+    // #endif
 
-    // on_coolq_exit([]() {
+    // on_disable([]() {
     //     if (w != nullptr) {
     //         delete w;
     //         w = nullptr;
@@ -131,20 +217,35 @@ CQ_INIT {
     //         a = nullptr;
     //     }
     // });
+
+    on_coolq_exit([]() {
+        if (w != nullptr) {
+            delete w;
+            w = nullptr;
+        }
+        if (a != nullptr) {
+            delete a;
+            a = nullptr;
+        }
+    });
 }
 
 CQ_MENU(menu_config) {
-    logging::info("菜单", "尝试启动Qt GUI");
     try {
         w->show();
     } catch (std::exception a) {
-        logging::error("错误", "尝试再启动 Qt GUI 失败");
+        logging::error("错误", "尝试启动 Qt GUI 失败");
         logging::error("错误", a.what());
     }
 }
 
 CQ_MENU(menu_reload_from_file) {
-    logging::info("菜单", "尝试从文件重载设置");
     pc_instance->reset();
-    pc_instance->load_from_file();
+    try {    
+        pc_instance->load_from_file();
+        QMessageBox::information(NULL, "提示", "已成功加载文件内设置，原有设置被清除。");
+    } catch (const std::exception &err) {
+        logging::error("文件加载错误", err.what());
+        QMessageBox::critical(NULL, "发生错误", "从文件加载时发生错误，请查看应用日志。");
+    }
 }

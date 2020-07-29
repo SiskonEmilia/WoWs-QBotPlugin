@@ -6,6 +6,9 @@
 #include <string>
 #include <cqcppsdk/cqcppsdk.h>
 
+// comment if release
+// #define DEBUG_VERSION
+
 typedef enum HTTP_REQUEST_TYPE {
     GET, 
     POST,

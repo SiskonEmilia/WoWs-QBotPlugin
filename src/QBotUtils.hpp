@@ -1,6 +1,7 @@
 #ifndef QBOT_UTILS
 #define QBOT_UTILS
 #include "Global.hpp"
+#include "Pattern.hpp"
 #include <vector>
 #include <string>
 #include <sstream>
@@ -8,11 +9,16 @@
 #include <rapidjson/document.h>
 
 namespace QBot_Utils {
-    static std::string bot_mentioned_key;
 
     inline void split_group_msg(const std::string &input_str, const char &splitor, 
         std::vector<std::string> &result_container) {
-        std::istringstream is(input_str.substr(bot_mentioned_key.size()));
+        int prefix_empty = 0;
+        std::string input_str_without_at(input_str.substr(Pattern::bot_mentioned_key.size()));
+        for (const auto &ch: input_str_without_at) {
+            if (ch == ' ') ++prefix_empty;
+            else break;
+        }
+        std::istringstream is(input_str_without_at.substr(prefix_empty));
         std::string fragment_str;
 
         while(std::getline(is, fragment_str, splitor)) {
@@ -23,7 +29,12 @@ namespace QBot_Utils {
 
     inline void split_private_msg(const std::string &input_str, const char &splitor, 
         std::vector<std::string> &result_container) {
-        std::istringstream is(input_str);
+        int prefix_empty = 0;
+        for (const auto &ch: input_str) {
+            if (ch == ' ') ++prefix_empty;
+            else break;
+        }
+        std::istringstream is(input_str.substr(prefix_empty));
         std::string fragment_str;
 
         while(std::getline(is, fragment_str, splitor)) {
@@ -33,14 +44,21 @@ namespace QBot_Utils {
     }
 
     inline void set_mentioned_key (const std::string &bot_id) {
-        bot_mentioned_key = "[CQ:at,qq=";
-        bot_mentioned_key += bot_id;
-        bot_mentioned_key += "]";
+        Pattern::bot_mentioned_key = CQAT_CODE_PREFIX;
+        Pattern::bot_mentioned_key += bot_id;
+        Pattern::bot_mentioned_key += "]";
+    }
+
+    inline std::string get_mention_key (const std::string &user_id) {
+        std::string mention_key = CQAT_CODE_PREFIX;
+        mention_key += user_id;
+        mention_key += "]\n";
+        return mention_key;
     }
 
     inline bool is_mentioned(const std::string &message) {
-        if (message.size() < bot_mentioned_key.size()) return false;
-        return message.substr(0, bot_mentioned_key.size()) == bot_mentioned_key;
+        if (message.size() < Pattern::bot_mentioned_key.size()) return false;
+        return message.substr(0, Pattern::bot_mentioned_key.size()) == Pattern::bot_mentioned_key;
     }
 
     inline const rapidjson::Value& get_nested_json(const rapidjson::Value &root_obj, const std::string &keys) {

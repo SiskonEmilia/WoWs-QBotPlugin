@@ -1,36 +1,52 @@
 {
     "patterns" : [
         {
-            "is_enable": true,
-            "prefix_keyword": "TestKeyword",
-            "req_type": 2,
-            "req_url_pattern": "",
+            "is_enable": true, // 是否启用该规则
+            "prefix_keyword": "水表", // 触发关键字
+            "req_type": 0, // 0 for GET, 1 for POST (developing), 2 for auto reply
+            "req_url_patterns": [
+                {
+                    "req_url_pattern": "https://www.mgaia.top/mgaia/wows/findWowsUser?nick=eu [$0]", // 可以使用 [$0] - [$9]
+                    "param_count": 1 // 参数数量（最大10）
+                },{
+                    "req_url_pattern": "https://www.mgaia.top/mgaia/wows/findWowsUser?nick=[$0] [$1]",
+                    "param_count": 2
+                }
+            ],
             "reply_patterns": [
                 {
                     "status_code": 200,
                     "random_reply_patterns": [
-                        "Random Test pattern1",
-                        "Random Test pattern2",
-                        "Random Test pattern with param[0]: [$2][$0][$1]"
-                    ]
+                        "服务器：{$server}\n用户名：{$nickname}\n胜率：{$winningProbability}",
+                        "TQL，{$nickname}的胜率居然有{$winningProbability}", 
+                        "{$server}大佬{$nickname}目前胜率为{$winningProbability}"
+                    ] // 回复模板中可以使用 [$paramater_index] 和 {$json.field} 两种变量（后者支持嵌套）
                 }
             ]
-        },{
+        }, {
             "is_enable": true,
-            "prefix_keyword": "嗨",
-            "req_type": 2,
-            "req_url_pattern": "",
+            "prefix_keyword": "吹真神",
+            "req_type": 0,
+            "req_url_patterns": [
+                {
+                    "req_url_pattern": "https://www.mgaia.top/mgaia/wows/findWowsUser?nick=asia TowardsXY",
+                    "param_count": 0
+                }
+            ],
             "reply_patterns": [
                 {
                     "status_code": 200,
                     "random_reply_patterns": [
-                        "你好呀\n",
-                        "？",
-                        "XD欢迎啊"
+                        "真神数据不用吹，直接看：\n服务器：{$server}\n用户名：{$nickname}\n胜场（胜率）：{$winningProbability}",
+                        "TQL，{$nickname}的胜场（胜率）居然有{$winningProbability}，bot瑟瑟发抖",
+                        "真神的胜场（胜率）已经来到了{$winningProbability}！拜托谁去让他输一把吧！",
+                        "群友不用动，吹神全自动。\n服务器：{$server}\n用户名：{$nickname}\n胜场（胜率）：{$winningProbability}"
                     ]
                 }
             ]
         }
     ], 
-    "invalid_param_reply": "参数输错了吧"
+    "invalid_param_reply": "参数输错了吧 注意：新版Bot需要艾特才会回复哦", // 当没有匹配的参数数量或指令时使用的回复
+    "trailling_content": "\n这是一个小尾巴演示，前面记得加换行符！", // 加在所有话后面的回复
+    "param_splitor": " " // 参数分隔符（只支持长度为1的字符串）
 }

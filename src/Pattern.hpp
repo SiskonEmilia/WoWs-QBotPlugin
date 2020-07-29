@@ -5,6 +5,8 @@
 #include <map>
 #include <string>
 
+#define CQAT_CODE_PREFIX "[CQ:at,qq="
+#define QBOT_VALID_HTTP_URL R"(^((https?)://([^:/?#]+)(?::(\d+))?)(/.*)?)"
 /**
 * Pattern 类代表了一个 关键词-HTTP请求组合
 * 数据域表：
@@ -17,6 +19,11 @@
 * - post_body_pattern：当使用 POST 请求时的 request body
 */
 typedef struct Pattern {
+private:
+    std::vector<std::string> req_url_path_patterns;
+    std::vector<std::string> req_url_domains;
+    std::vector<std::string> req_url_hosts;
+public:
     bool is_enable;
     std::string prefix_keyword;
     HTTP_REQUEST_TYPE req_type;
@@ -29,7 +36,7 @@ typedef struct Pattern {
     * 如果 req_url_pattern 为 http://example.com?test1=[$2]&test2=[$1]
     * 则实际请求 URL 为 http://example.com?test1=BC&test2=CD
     */    
-    std::string req_url_pattern;
+    std::vector<std::string> req_url_patterns;
     /** 关于 reply_pattern 的语法说明
      * 示例：
      * 查询结果[$paramater_index], {$JSON_field.nestedJSON_field}
@@ -38,11 +45,16 @@ typedef struct Pattern {
      * 许参数内出现 "." 符号，请务必注意。
     */
     std::map<int, std::vector<std::string>*> reply_patterns;
-    Pattern(const bool is_enable, const char* prefix_keyword, const int req_type, const char* req_url_pattern);
+    Pattern(const bool is_enable, const char* prefix_keyword, const int req_type);
     ~Pattern();
-    const std::string& get_reply_msg(const std::vector<std::string> &params);
+    void get_reply_msg(const std::vector<std::string> &params, std::string& reply);
+    static bool verify_pattern(const std::string &reply_pattern, const int& param_count);
     static std::string invalid_param_reply;
     static std::string trailling_content;
+    // static httplib::SSLClient sslcli;
+    // static httplib::Client cli;
+    static std::string bot_mentioned_key;
+    static char param_splitor;
     // std::string post_body_pattern
 } Pattern;
 

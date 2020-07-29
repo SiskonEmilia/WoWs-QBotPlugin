@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.9)
 project(WoWsQBotPlugin)
 
 set(CMAKE_CXX_STANDARD 17)
-set(CQ_DEV_PLUGIC_DIR "F:/iWarships/CoolQAir/")
+set(CQ_DEV_PLUGIC_DIR "F:/iWarships/CQP/")
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
@@ -33,6 +33,11 @@ endif()
 
 # import necessary Qt5 core & its components
 find_package(Qt5 COMPONENTS Widgets REQUIRED)
+# import necessary OpenSSL
+set(OPENSSL_ROOT_DIR "C:/Program Files (x86)/OpenSSL-Win32")
+set(OPENSSL_USE_STATIC_LIBS TRUE)
+find_package(OpenSSL REQUIRED)
+
 
 # include cqcppsdk
 include(extern/cqcppsdk/cqcppsdk.cmake) 
@@ -62,7 +67,7 @@ if (CQ_CAN_BUILD_STD_MODE)
     # set build target
     cq_add_std_app(${SOURCE_FILES})
     # link with Qt5
-    target_link_libraries(app Qt5::Widgets)
+    target_link_libraries(app Qt5::Widgets OpenSSL::SSL OpenSSL::Crypto)
     # if you need to install it due to cmake setting
     cq_install_std_app("${CQ_DEV_PLUGIC_DIR}")
 else()

@@ -1,5 +1,9 @@
 # WoWs QBot Plugin
 
+*v0.0.3dev: Shiroha*
+
+![](assets/img/0.0.3-banner.jpg)
+
 ## 插件简介
 
 本插件主要为战舰世界 CoolQ 机器人（2065104337）提供前后端接口，兼有一定的通用性功能。
@@ -18,23 +22,37 @@
 
 ### 开发进度
 
-- **version 0.0.1: Madoka** 
-  - 引入 Nana GUI Library
-  - 完成编译环境测试
-  - 确定软件设计模式（MVC）
-  - 测试数据结构可用性
-- **version 0.0.2: ATRI** 
-  - 重构项目逻辑，使用 Qt5 替换 Nana 作为 GUI 库
-  - 测试硬编码下插件的可用性
-  - ~~设计、实现 GUI 界面，添加数据接口~~
-  - 引入 Tencent RapidJSON
-  - 引入 cpp-httplib
-  - ~~引入 Boost 库作为参数分割工具~~
-  - 实现数据持久化
-  - 暂时使用 JSON 文件作为配置工具
-  - 支持自动加群
-- **version 0.0.3: Shiroha** *<-developing*
-  - 敬请期待
+#### version 0.0.1: Madoka 
+
+![](assets/img/0.0.1-banner.jpg)
+
+- 引入 Nana GUI Library
+- 完成编译环境测试
+- 确定软件设计模式（MVC）
+- 测试数据结构可用性
+
+
+#### version 0.0.2: ATRI
+
+[![0.0.2: ATRI](assets/img/0.0.2-banner.jpg)](https://github.com/SiskonEmilia/WoWs-QBotPlugin/releases/tag/0.0.2)
+
+- 重构项目逻辑，使用 Qt5 替换 Nana 作为 GUI 库
+- 测试硬编码下插件的可用性
+- ~~设计、实现 GUI 界面，添加数据接口~~
+- 引入 Tencent RapidJSON
+- 引入 cpp-httplib
+- ~~引入 Boost 库作为参数分割工具~~
+- 实现数据持久化
+- 暂时使用 JSON 文件作为配置工具
+- 支持自动加群
+
+#### version 0.0.3: Shiroha *<-developing*
+
+![](assets/img/0.0.3-banner.jpg)
+
+- 支持 JSON List 回复模板解析
+- 支持请求地址模板、回复模板预渲染，优化了渲染性能
+- 支持基于线程池的并发，优化了在多核心机器上的响应速度
 
 ## 如何获取&使用？
 
@@ -48,7 +66,7 @@
   - 标准 JSON 不允许存在注释，请删除所有注释后使用。
 - 为何我下载了 Qt5Core.dll、Qt5Widegt.dll、Qt5GUI.dll 但仍无法运行？
   - 尝试下载 msvcp140.dll 并一并放置在 CoolQ 安装目录下
-- 为什么没有 `cpk` 文件
+- 为什么没有 `cpk` 文件？
   - 未知原因导致打包失败，可能之后会再尝试。
 
 ## 如何编译？

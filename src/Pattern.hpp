@@ -1,9 +1,12 @@
 #ifndef QBOT_PATTERN_HPP
 #define QBOT_PATTERN_HPP
 #include "Global.hpp"
+#include "Renderer.hpp"
+
 #include <vector>
 #include <map>
 #include <string>
+#include <regex>
 
 #define CQAT_CODE_PREFIX "[CQ:at,qq="
 #define QBOT_VALID_HTTP_URL R"(^((https?)://([^:/?#]+)(?::(\d+))?)(/.*)?)"
@@ -20,11 +23,13 @@
 */
 typedef struct Pattern {
 private:
-    std::vector<std::string> req_url_path_patterns;
-    std::vector<std::string> req_url_domains;
-    std::vector<std::string> req_url_hosts;
+    std::vector<std::string>      req_url_domains;
+    std::vector<std::string>      req_url_hosts;
+    std::vector<RendererObject>   req_path_renderers;
+    Pattern(); // Disable default constructor
 public:
     bool is_enable;
+    size_t min_param_count;
     std::string prefix_keyword;
     HTTP_REQUEST_TYPE req_type;
     /** 关于 req_url_pattern 的语法说明
@@ -44,17 +49,21 @@ public:
      * 返回的 JSON 的域变量，当你要访问 JSONObj[abc][bcd] 时，写作 {$abc.bcd}。因此，我们不允
      * 许参数内出现 "." 符号，请务必注意。
     */
-    std::map<int, std::vector<std::string>*> reply_patterns;
+    std::map<int, std::vector<std::string>>      reply_patterns;
+    std::map<int, std::vector<RendererObject>>   reply_pattern_renderers;
     Pattern(const bool is_enable, const char* prefix_keyword, const int req_type);
     ~Pattern();
     void get_reply_msg(const std::vector<std::string> &params, std::string& reply);
+    void set_new_url_pattern(const std::string& pattern, const size_t& param_count);
     static bool verify_pattern(const std::string &reply_pattern, const int& param_count);
     static std::string invalid_param_reply;
     static std::string trailling_content;
     // static httplib::SSLClient sslcli;
     // static httplib::Client cli;
     static std::string bot_mentioned_key;
+    static std::string i_need_help;
     static char param_splitor;
+    static std::regex url_reg;
     // std::string post_body_pattern
 } Pattern;
 

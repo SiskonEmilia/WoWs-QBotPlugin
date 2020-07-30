@@ -70,7 +70,11 @@ namespace QBot_Utils {
                 return get_nested_json(root_obj[keys.substr(0, temp_index).c_str()], keys.substr(temp_index + 1));
             }
         } else {
-            throw(std::exception("JSON 嵌套解析错误"));
+            #ifdef PRINT_NULL
+            throw std::string("NULL");
+            #else
+            throw std::exception("JSON 嵌套解析失败，请检查您的 JSON 结构");
+            #endif
         }
         
     }

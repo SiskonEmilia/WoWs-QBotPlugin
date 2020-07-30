@@ -8,11 +8,12 @@
 
 // comment if release
 // #define DEBUG_VERSION
+#define PRINT_NULL
 
 typedef enum HTTP_REQUEST_TYPE {
     GET, 
     POST,
-    AURO_REPLY
+    AUTO_REPLY
 } HTTP_REQUEST_TYPE;
 
 // 用于复读计数的结构体

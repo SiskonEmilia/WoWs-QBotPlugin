@@ -18,15 +18,15 @@ class PatternController {
 private:
     static PatternController *single_instance;
     PatternController();
-    std::map<std::string, Pattern*> patterns;
+    std::map<std::string, Pattern> patterns;
 public:
     static PatternController* get_instance();
     void save_to_file();
     void load_from_file();
     void reset();
     ~PatternController();
-    std::map<std::string, Pattern*>::iterator find_pattern(std::string key);
-    std::map<std::string, Pattern*>::iterator get_end();
+    std::map<std::string, Pattern>::iterator find_pattern(std::string key);
+    std::map<std::string, Pattern>::iterator get_end();
 };
 
 #endif

@@ -6,10 +6,10 @@
             "req_type": 0, // 0 for GET, 1 for POST (developing), 2 for auto reply
             "req_url_patterns": [
                 {
-                    "req_url_pattern": "https://www.mgaia.top/mgaia/wows/findWowsUser?nick=eu [$0]", // 可以使用 [$0] - [$9]
+                    "req_url_pattern": "https://example.com/wows/findWowsUser?nick=eu [$0]", // 可以使用 [$0] - [$9]
                     "param_count": 1 // 参数数量（最大10）
                 },{
-                    "req_url_pattern": "https://www.mgaia.top/mgaia/wows/findWowsUser?nick=[$0] [$1]",
+                    "req_url_pattern": "https://example.com/wows/findWowsUser?nick=[$0] [$1]",
                     "param_count": 2
                 }
             ],
@@ -29,7 +29,28 @@
             "req_type": 0,
             "req_url_patterns": [
                 {
-                    "req_url_pattern": "https://www.mgaia.top/mgaia/wows/findWowsUser?nick=asia TowardsXY",
+                    "req_url_pattern": "https://example.com/wows/findWowsUser?nick=asia TowardsXY",
+                    "param_count": 0
+                }
+            ],
+            "reply_patterns": [
+                {
+                    "status_code": 200,
+                    "random_reply_patterns": [
+                        "真神数据不用吹，直接看：\n服务器：{$server}\n用户名：{$nickname}\n胜场（胜率）：{$winningProbability}",
+                        "TQL，{$nickname}的胜场（胜率）居然有{$winningProbability}，bot瑟瑟发抖",
+                        "真神的胜场（胜率）已经来到了{$winningProbability}！拜托谁去让他输一把吧！",
+                        "群友不用动，吹神全自动。\n服务器：{$server}\n用户名：{$nickname}\n胜场（胜率）：{$winningProbability}"
+                    ]
+                }
+            ]
+        }, {
+            "is_enable": true,
+            "prefix_keyword": "离线吹真神",
+            "req_type": 2,
+            "req_url_patterns": [
+                {
+                    "req_url_pattern": "",
                     "param_count": 0
                 }
             ],

@@ -3,8 +3,8 @@
     "ret": 1,
     "apiver": 9,
     "name": "WoWsQBotPlugin",
-    "version": "0.0.2: ATRI",
-    "version_id": 1,
+    "version": "0.0.3dev: Shiroha",
+    "version_id": 3,
     "author": "siskonemilia",
     "description": "用以支持 WoWs QQ 机器人开发的插件",
     "event": [ // 可以修改 priority 来调整插件的优先级, 其它字段不可修改, 否则将无法使用

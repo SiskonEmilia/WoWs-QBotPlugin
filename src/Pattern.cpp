@@ -295,7 +295,7 @@ void Pattern::get_reply_msg(const std::vector<std::string> &params, std::string 
     if (reply_render_vector.size() == 0) throw std::exception("没有可用的回复模板");
     
     // 随机选择回复模板
-    random_index = std::rand() % reply_render_vector.size();
+    random_index = clock() % reply_render_vector.size();
     const auto reply_renderer = reply_render_vector[random_index];
     reply_renderer.render(params, root_json_obj, reply);
     reply += Pattern::trailling_content;

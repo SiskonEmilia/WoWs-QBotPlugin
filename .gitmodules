@@ -1,3 +1,9 @@
 [submodule "extern/cqcppsdk"]
 	path = extern/cqcppsdk
 	url = https://github.com/cqmoe/cqcppsdk.git
+[submodule "extern/lib"]
+	path = extern/lib
+	url = https://github.com/Fdhvdu/lib.git
+[submodule "extern/ThreadPool"]
+	path = extern/ThreadPool
+	url = https://github.com/Fdhvdu/ThreadPool.git

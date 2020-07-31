@@ -25,7 +25,7 @@
 
 #### version 0.0.1: Madoka 
 
-![](assets/img/0.0.1-banner.jpg)
+![Madoka](assets/img/0.0.1-banner.jpg)
 
 - 引入 Nana GUI Library
 - 完成编译环境测试
@@ -35,7 +35,7 @@
 
 #### version 0.0.2: ATRI
 
-[![0.0.2: ATRI](assets/img/0.0.2-banner.jpg)](https://github.com/SiskonEmilia/WoWs-QBotPlugin/releases/tag/0.0.2)
+[![ATRI](assets/img/0.0.2-banner.jpg)](https://github.com/SiskonEmilia/WoWs-QBotPlugin/releases/tag/0.0.2)
 
 - 重构项目逻辑，使用 Qt5 替换 Nana 作为 GUI 库
 - 测试硬编码下插件的可用性
@@ -49,7 +49,7 @@
 
 #### version 0.0.3: Shiroha 
 
-![](assets/img/0.0.3-banner.jpg)
+[![Shiroha](assets/img/0.0.3-banner.jpg)](https://github.com/SiskonEmilia/WoWs-QBotPlugin/releases/tag/0.0.3)
 
 - 支持 JSON Array 回复模板解析
 - 支持请求地址模板、回复模板预渲染，优化了渲染性能

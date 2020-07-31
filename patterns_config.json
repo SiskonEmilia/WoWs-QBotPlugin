@@ -1,15 +1,15 @@
 {
     "patterns" : [
         {
-            "is_enable": true, // 是否启用该规则
-            "prefix_keyword": "水表", // 触发关键字
-            "req_type": 0, // 0 for GET, 1 for POST (developing), 2 for auto reply
+            "is_enable": true,
+            "prefix_keyword": "水表",
+            "req_type": 0,
             "req_url_patterns": [
                 {
-                    "req_url_pattern": "https://example.com/wows/findWowsUser?nick=eu [$0]", // 可以使用 [$0] - [$9]
-                    "param_count": 1 // 参数数量（最大10）
+                    "req_url_pattern": "https:/example.com/wows/findWowsUser?nick=eu [$0]",
+                    "param_count": 1
                 },{
-                    "req_url_pattern": "https://example.com/wows/findWowsUser?nick=[$0] [$1]",
+                    "req_url_pattern": "https:/example.com/wows/findWowsUser?nick=[$0] [$1]",
                     "param_count": 2
                 }
             ],
@@ -20,7 +20,28 @@
                         "服务器：{$server}\n用户名：{$nickname}\n胜率：{$winningProbability}",
                         "TQL，{$nickname}的胜率居然有{$winningProbability}", 
                         "{$server}大佬{$nickname}目前胜率为{$winningProbability}"
-                    ] // 回复模板中可以使用 [$paramater_index] 和 {$json.field} 两种变量（后者支持嵌套）
+                    ]
+                }
+            ]
+        },{
+            "is_enable": true,
+            "prefix_keyword": "搜船",
+            "req_type": 0,
+            "req_url_patterns": [
+                {
+                    "req_url_pattern": "https:/example.com/wows/findWowsUserShipByTypeGradeMap?type=[$0] [$1] [$2] [$3]",
+                    "param_count": 4
+                },{
+                    "req_url_pattern": "https:/example.com/wows/findWowsUserShipByTypeGradeMap?type=[$0] [$1] [$2] 9",
+                    "param_count": 3
+                }
+            ],
+            "reply_patterns": [
+                {
+                    "status_code": 200,
+                    "random_reply_patterns": [
+                        "[$0]服务器的[$1]大佬的[$2]搜船记录来力<$data>\n船只名：{$shipName}\n胜场（胜率）：{$winningProbability}\n========</>"
+                    ]
                 }
             ]
         }, {
@@ -29,7 +50,7 @@
             "req_type": 0,
             "req_url_patterns": [
                 {
-                    "req_url_pattern": "https://example.com/wows/findWowsUser?nick=asia TowardsXY",
+                    "req_url_pattern": "https:/example.com/wows/findWowsUser?nick=asia TowardsXY",
                     "param_count": 0
                 }
             ],
@@ -46,7 +67,7 @@
             ]
         }, {
             "is_enable": true,
-            "prefix_keyword": "离线吹真神",
+            "prefix_keyword": "bot使用说明",
             "req_type": 2,
             "req_url_patterns": [
                 {
@@ -58,16 +79,33 @@
                 {
                     "status_code": 200,
                     "random_reply_patterns": [
-                        "真神数据不用吹，直接看：\n服务器：{$server}\n用户名：{$nickname}\n胜场（胜率）：{$winningProbability}",
-                        "TQL，{$nickname}的胜场（胜率）居然有{$winningProbability}，bot瑟瑟发抖",
-                        "真神的胜场（胜率）已经来到了{$winningProbability}！拜托谁去让他输一把吧！",
-                        "群友不用动，吹神全自动。\n服务器：{$server}\n用户名：{$nickname}\n胜场（胜率）：{$winningProbability}"
+                        "目前仅支持水表和搜船功能以供测试，每次调用前必须艾特机器人～！\n水表功能语法：水表#服务器#用户名 或 水表#用户名\n水表（不含搜船）服务器默认为欧服（eu）\n搜船功能语法：搜船#服务器#用户名#船型#等级"
+                    ]
+                }
+            ]
+        }, {
+            "is_enable": true,
+            "prefix_keyword": "呼救测试",
+            "req_type": 0,
+            "req_url_patterns": [
+                {
+                    "req_url_pattern": "https://www.baidu.com",
+                    "param_count": 0
+                }
+            ],
+            "reply_patterns": [
+                {
+                    "status_code": 200,
+                    "random_reply_patterns": [
+                        "居然没出错？"
                     ]
                 }
             ]
         }
     ], 
-    "invalid_param_reply": "参数输错了吧 注意：新版Bot需要艾特才会回复哦", // 当没有匹配的参数数量或指令时使用的回复
-    "trailling_content": "\n这是一个小尾巴演示，前面记得加换行符！", // 加在所有话后面的回复
-    "param_splitor": " " // 参数分隔符（只支持长度为1的字符串）
+    "invalid_param_reply": "参数输错了吧 注意：新版Bot需要艾特才会回复哦\n需要指令说明请@我并使用指令『bot使用说明』\n当前分隔符为'#'",
+    "trailling_content": "\n这是一个小尾巴演示，前面记得加换行符！",
+    "i_need_help": "啊这，你成功把👴整懵了，快去群里叫人救救我8",
+    "network_issue_report": "啊咧，bot网络信号好像出现了问题！再试一次吧QwQ",
+    "param_splitor": "#"
 }

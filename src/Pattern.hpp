@@ -53,7 +53,7 @@ public:
     std::map<int, std::vector<RendererObject>>   reply_pattern_renderers;
     Pattern(const bool is_enable, const char* prefix_keyword, const int req_type);
     ~Pattern();
-    void get_reply_msg(const std::vector<std::string> &params, std::string& reply);
+    void get_reply_msg(const std::vector<std::string> &params, std::string& reply) const;
     void set_new_url_pattern(const std::string& pattern, const size_t& param_count);
     static bool verify_pattern(const std::string &reply_pattern, const int& param_count);
     static std::string invalid_param_reply;
@@ -62,6 +62,7 @@ public:
     // static httplib::Client cli;
     static std::string bot_mentioned_key;
     static std::string i_need_help;
+    static std::string network_issue_report;
     static char param_splitor;
     static std::regex url_reg;
     // std::string post_body_pattern

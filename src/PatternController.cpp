@@ -191,6 +191,13 @@ void PatternController::load_from_file() {
             cq::logging::warning("JSON数据警告", "未设置呼救字段，出现问题将不会在群内呼救");
         }
 
+        rapidjson::Value &json_network_issue_report = document["network_issue_report"];
+        if (json_network_issue_report.IsString()) {
+            Pattern::network_issue_report = json_network_issue_report.GetString();
+        } else {
+            cq::logging::warning("JSON数据警告", "未设置网络故障提醒字段，出现问题将会使用通用呼救");
+        }
+
         rapidjson::Value &json_param_splitor = document["param_splitor"];
         if (json_param_splitor.IsString()) {
             std::string param_splitor_str(json_param_splitor.GetString());

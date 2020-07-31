@@ -7,5 +7,4 @@ out
 cmake-build-*
 tmp
 bin
-extern
 include

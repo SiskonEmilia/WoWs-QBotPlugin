@@ -9,6 +9,9 @@
 // comment if release
 // #define DEBUG_VERSION
 #define PRINT_NULL
+// #define GUI_TEST_SET
+
+#define MAX_AVALIBEL_THREAD 128
 
 typedef enum HTTP_REQUEST_TYPE {
     GET, 

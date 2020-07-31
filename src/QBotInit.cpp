@@ -2,6 +2,9 @@
 #include <set>
 #include <sstream>
 #include <exception>
+#include <mutex>
+
+#include <CThreadPool.hpp>
 #include <QApplication>
 #include <QMessageBox>
 
@@ -19,7 +22,115 @@ PatternController *pc_instance = nullptr;
 QApplication *a = nullptr;
 MainWindow *w = nullptr;
 int tmp_num = 0;
+bool is_ready = false;
 char **tmp_argv = new char*[0];
+
+std::mutex gui_des_lock;
+
+nThread::CThreadPool tp{MAX_AVALIBEL_THREAD};
+
+void private_message_handler (const PrivateMessageEvent &event){
+    try {
+        std::vector<std::string> params;
+        QBot_Utils::split_private_msg(event.message, Pattern::param_splitor, params);
+        if (params.empty()) {
+            send_message(event.target, Pattern::invalid_param_reply);
+            return;
+        }
+        auto pattern = pc_instance->find_pattern(params[0]);
+        if (pattern == pc_instance->get_end() || !pattern->second.is_enable) {
+            send_message(event.target, Pattern::invalid_param_reply);
+        } else {
+            const auto& reply_pattern = pattern->second;
+            std::string reply;
+            reply_pattern.get_reply_msg(params, reply);
+            #ifdef DEBUG_VERSION
+            logging::debug("尝试发送消息内容", reply);
+            #endif
+            send_message(event.target, reply);
+        }
+    } catch (ApiError &err) {
+        logging::error("系统错误", "私聊消息处理错误, 错误码: " + to_string(err.code));
+        if (!Pattern::i_need_help.empty()) {
+            try {
+                send_message(event.target, Pattern::i_need_help);
+            } catch (ApiError &err) {
+                logging::error("系统错误", "太惨了，呼救都发不出去, 错误码: " + to_string(err.code));
+            }
+        }
+    } catch (std::exception &err) {
+        logging::error("私聊消息发送错误", err.what());
+        if (!Pattern::i_need_help.empty()) {
+            try {
+                send_message(event.target, Pattern::i_need_help);
+            } catch (ApiError &err) {
+                logging::error("系统错误", "太惨了，呼救都发不出去, 错误码: " + to_string(err.code));
+            }
+    }
+}}
+
+void group_message_handler(const GroupMessageEvent &event){
+    try {
+        if (!QBot_Utils::is_mentioned(event.message)) {
+            #ifdef DEBUG_VERSION
+            logging::debug("group_missing_msg", event.message);
+            #endif
+            return;
+        } else {
+            std::vector<std::string> params;
+            QBot_Utils::split_group_msg(event.message, Pattern::param_splitor, params);
+            if (params.empty()) {
+                send_group_message(event.group_id, Pattern::invalid_param_reply);
+                return;
+            }
+            auto pattern = pc_instance->find_pattern(params[0]);
+            if (pattern == pc_instance->get_end() || !pattern->second.is_enable) {
+                if (!event.is_anonymous()) {
+                    send_group_message(event.group_id, QBot_Utils::get_mention_key(to_string(event.user_id)) + Pattern::invalid_param_reply);
+                } else {
+                    send_group_message(event.group_id, Pattern::invalid_param_reply);
+                }
+            } else {
+                std::string reply;
+                pattern->second.get_reply_msg(params, reply);
+                #ifdef DEBUG_VERSION
+                logging::debug("尝试发送消息内容", reply);
+                #endif
+                if (!event.is_anonymous()) {
+                    send_group_message(event.group_id, QBot_Utils::get_mention_key(to_string(event.user_id)) + reply);
+                }
+                else {
+                    send_group_message(event.group_id, reply);
+                }      
+            }
+        }
+    } catch (ApiError &err) {
+        logging::error("系统错误", "群聊消息处理错误, 错误码: " + to_string(err.code));
+        if (!Pattern::i_need_help.empty()) {
+            try {
+                std::string reply;
+                if (!event.is_anonymous()) {
+                    reply = QBot_Utils::get_mention_key(to_string(event.user_id));
+                }
+                send_message(event.target, reply + Pattern::i_need_help);
+            } catch (ApiError &err) {
+                logging::error("系统错误", "太惨了，呼救都发不出去, 错误码: " + to_string(err.code));
+            }
+        }
+    } catch (std::exception &err) {
+        logging::error("群聊消息发送错误", err.what());
+        if (!Pattern::i_need_help.empty()) {
+            try {
+                std::string reply;
+                if (!event.is_anonymous()) {
+                    reply = QBot_Utils::get_mention_key(to_string(event.user_id));
+                }
+                send_message(event.target, reply + Pattern::i_need_help);
+            } catch (ApiError &err) {
+                logging::error("系统错误", "太惨了，呼救都发不出去, 错误码: " + to_string(err.code));
+            }
+        }
+}}
 
 CQ_INIT {
     on_enable([] { 
@@ -65,51 +176,16 @@ CQ_INIT {
         #endif
 
         QBot_Utils::set_mentioned_key(std::to_string(cq::get_login_user_id()));
+        is_ready = true;
         #ifdef DEBUG_VERSION
         logging::debug("mentioned_key", Pattern::bot_mentioned_key);
         #endif
     });
 
     on_private_message([](const PrivateMessageEvent &event) {
-        try {
-            std::vector<std::string> params;
-            QBot_Utils::split_private_msg(event.message, Pattern::param_splitor, params);
-            if (params.empty()) {
-                send_message(event.target, Pattern::invalid_param_reply);
-                event.block();
-                return;
-            }
-            auto pattern = pc_instance->find_pattern(params[0]);
-            if (pattern == pc_instance->get_end() || !pattern->second.is_enable) {
-                send_message(event.target, Pattern::invalid_param_reply);
-            } else {
-                std::string reply;
-                pattern->second.get_reply_msg(params, reply);
-                #ifdef DEBUG_VERSION
-                logging::debug("尝试发送消息内容", reply);
-                #endif
-                send_message(event.target, reply);
-            }
-        } catch (ApiError &err) {
-            logging::error("系统错误", "私聊消息处理错误, 错误码: " + to_string(err.code));
-            if (!Pattern::i_need_help.empty()) {
-                try {
-                    send_message(event.target, Pattern::i_need_help);
-                } catch (ApiError &err) {
-                    logging::error("系统错误", "太惨了，呼救都发不出去, 错误码: " + to_string(err.code));
-                }
-            }
-        } catch (std::exception &err) {
-            logging::error("私聊消息发送错误", err.what());
-            if (!Pattern::i_need_help.empty()) {
-                try {
-                    send_message(event.target, Pattern::i_need_help);
-                } catch (ApiError &err) {
-                    logging::error("系统错误", "太惨了，呼救都发不出去, 错误码: " + to_string(err.code));
-                }
-            }
-        }
         event.block();
+        if (!is_ready) return;
+        tp.add_and_detach(private_message_handler, PrivateMessageEvent(event));
     });
 
     
@@ -120,70 +196,9 @@ CQ_INIT {
     #endif
 
     on_group_message([](const GroupMessageEvent &event) {
-        try {
-            if (!QBot_Utils::is_mentioned(event.message)) {
-                #ifdef DEBUG_VERSION
-                logging::debug("group_missing_msg", event.message);
-                #endif
-                event.block();
-                return;
-            } else {
-                std::vector<std::string> params;
-                QBot_Utils::split_group_msg(event.message, Pattern::param_splitor, params);
-                if (params.empty()) {
-                    send_group_message(event.group_id, Pattern::invalid_param_reply);
-                    event.block();
-                    return;
-                }
-                auto pattern = pc_instance->find_pattern(params[0]);
-                if (pattern == pc_instance->get_end() || !pattern->second.is_enable) {
-                    if (!event.is_anonymous()) {
-                        send_group_message(event.group_id, QBot_Utils::get_mention_key(to_string(event.user_id)) + Pattern::invalid_param_reply);
-                    } else {
-                        send_group_message(event.group_id, Pattern::invalid_param_reply);
-                    }
-                } else {
-                    std::string reply;
-                    pattern->second.get_reply_msg(params, reply);
-                    #ifdef DEBUG_VERSION
-                    logging::debug("尝试发送消息内容", reply);
-                    #endif
-                    if (!event.is_anonymous()) {
-                        send_group_message(event.group_id, QBot_Utils::get_mention_key(to_string(event.user_id)) + reply);
-                    }
-                    else {
-                        send_group_message(event.group_id, reply);
-                    }      
-                }
-            }
-        } catch (ApiError &err) {
-            logging::error("系统错误", "群聊消息处理错误, 错误码: " + to_string(err.code));
-            if (!Pattern::i_need_help.empty()) {
-                try {
-                    std::string reply;
-                    if (!event.is_anonymous()) {
-                        reply = QBot_Utils::get_mention_key(to_string(event.user_id));
-                    }
-                    send_message(event.target, reply + Pattern::i_need_help);
-                } catch (ApiError &err) {
-                    logging::error("系统错误", "太惨了，呼救都发不出去, 错误码: " + to_string(err.code));
-                }
-            }
-        } catch (std::exception &err) {
-            logging::error("群聊消息发送错误", err.what());
-            if (!Pattern::i_need_help.empty()) {
-                try {
-                    std::string reply;
-                    if (!event.is_anonymous()) {
-                        reply = QBot_Utils::get_mention_key(to_string(event.user_id));
-                    }
-                    send_message(event.target, reply + Pattern::i_need_help);
-                } catch (ApiError &err) {
-                    logging::error("系统错误", "太惨了，呼救都发不出去, 错误码: " + to_string(err.code));
-                }
-            }
-        }
-        event.block(); // 阻止当前事件传递到下一个插件
+        event.block();
+        if (!is_ready) return;
+        tp.add_and_detach(group_message_handler, GroupMessageEvent(event));
     });
 
     // on_discuss_message([](const DiscussMessageEvent& event) {
@@ -225,6 +240,7 @@ CQ_INIT {
     // });
 
     on_group_request([](const GroupRequestEvent &event){ // 群请求
+        if (!is_ready) return;
         if (event.sub_type == GroupRequestEvent::SubType::INVITE) {
             set_group_request(event.flag, event.sub_type, RequestEvent::Operation::APPROVE);
             logging::info("群邀请", "已自动同意一个加群邀请");
@@ -243,18 +259,22 @@ CQ_INIT {
     // });
     // #endif
 
-    // on_disable([]() {
-    //     if (w != nullptr) {
-    //         delete w;
-    //         w = nullptr;
-    //     }
-    //     if (a != nullptr) {
-    //         delete a;
-    //         a = nullptr;
-    //     }
-    // });
+    on_disable([]() {
+        gui_des_lock.lock();
+        if (w != nullptr) {
+            delete w;
+            w = nullptr;
+        }
+
+        if (a != nullptr) {
+            delete a;
+            a = nullptr;
+        }
+        gui_des_lock.unlock();
+    });
 
     on_coolq_exit([]() {
+        gui_des_lock.lock();
         if (w != nullptr) {
             delete w;
             w = nullptr;
@@ -263,16 +283,21 @@ CQ_INIT {
             delete a;
             a = nullptr;
         }
+        gui_des_lock.unlock();
     });
 }
 
 CQ_MENU(menu_config) {
+    #ifdef GUI_TEST_SET
     try {
         w->show();
     } catch (std::exception a) {
         logging::error("错误", "尝试启动 Qt GUI 失败");
         logging::error("错误", a.what());
     }
+    #else
+        QMessageBox::information(NULL, "提示", "暂不支持图形化界面。");
+    #endif
 }
 
 CQ_MENU(menu_reload_from_file) {

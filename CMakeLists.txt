@@ -60,12 +60,16 @@ cq_set_app_id(${APP_ID}) # 设置 app id, 必须
 include_directories(include)
 # set src as include 
 include_directories(src)
+# set ThreadPool's header included
+include_directories(extern/ThreadPool/header)
 # import all files in src
 file(GLOB_RECURSE SOURCE_FILES src/*.cpp)
+file(GLOB_RECURSE TPLIB_SOURCE_FILE extern/ThreadPool/src/*.cpp)
+
 
 if (CQ_CAN_BUILD_STD_MODE)
     # set build target
-    cq_add_std_app(${SOURCE_FILES})
+    cq_add_std_app(${SOURCE_FILES} ${TPLIB_SOURCE_FILE} extern/lib/src/Scope_guard.cpp)
     # link with Qt5
     target_link_libraries(app Qt5::Widgets OpenSSL::SSL OpenSSL::Crypto)
     # if you need to install it due to cmake setting

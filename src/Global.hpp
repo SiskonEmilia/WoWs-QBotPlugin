@@ -10,6 +10,7 @@
 // #define DEBUG_VERSION
 #define PRINT_NULL
 // #define GUI_TEST_SET
+// #define TRY_ACC_STD_STREAM
 
 #define MAX_AVALIBEL_THREAD 128
 

@@ -146,7 +146,7 @@
         132 // get_group_info
         // 140, // set_discuss_leave
         // 150, // set_friend_request
-        // 151, // set_group_request
+        151, // set_group_request
         // 160, // get_group_member_list
         // 161, // get_group_list
         // 162, // get_friend_list

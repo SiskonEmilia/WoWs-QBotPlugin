@@ -18,6 +18,14 @@ using namespace std;
 using Message = cq::message::Message;
 using MessageSegment = cq::message::MessageSegment;
 
+#ifdef TYR_ACC_STD_STREAM
+static const auto _ = []() {
+    ios::sync_with_stdio(false);
+    // cin.tie(nullptr);
+    return nullptr;
+}();
+#endif
+
 PatternController *pc_instance = nullptr;
 QApplication *a = nullptr;
 MainWindow *w = nullptr;

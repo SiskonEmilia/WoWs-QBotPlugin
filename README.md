@@ -1,4 +1,6 @@
-# WoWs QBot Plugin
+# WoWs QBot Plugin [Archived]
+
+***Archived due to Tencent's ban on CoolQ platform.***
 
 *v0.0.4: Emilia -- incoming*
 
